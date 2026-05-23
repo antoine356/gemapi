@@ -1,65 +1,177 @@
-import Image from "next/image";
+'use client';
+import { useState } from 'react';
+import StepAccueil from '@/components/StepAccueil';
+import StepPoste from '@/components/StepPoste';
+import StepQuotidien from '@/components/StepQuotidien';
+import LoadingState from '@/components/LoadingState';
+import StepResultat from '@/components/StepResultat';
+import { POSTES, type Poste } from '@/lib/postes';
 
-export default function Home() {
+interface GenerateResult {
+  gem_instructions: string;
+  prompt_metier: string;
+  poste_label: string;
+  poste_icon: string;
+}
+
+function StepIndicator({ step }: { step: number }) {
+  const labels = ['Poste', 'Quotidien', 'Résultat'];
+  const activeIndex = step - 1;
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="flex items-center justify-center gap-2 mb-8">
+      {labels.map((label, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <div
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                i < activeIndex
+                  ? 'bg-[var(--accent-success)]'
+                  : i === activeIndex
+                  ? 'bg-[var(--accent-primary)]'
+                  : 'bg-[var(--border)]'
+              }`}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <span
+              className={`text-xs transition-colors duration-300 ${
+                i < activeIndex
+                  ? 'text-[var(--accent-success)]'
+                  : i === activeIndex
+                  ? 'text-[var(--text)]'
+                  : 'text-[var(--muted)]'
+              }`}
+            >
+              {label}
+            </span>
+          </div>
+          {i < labels.length - 1 && (
+            <div
+              className={`w-8 h-px transition-colors duration-300 ${
+                i < activeIndex ? 'bg-[var(--accent-success)]' : 'bg-[var(--border)]'
+              }`}
+            />
+          )}
         </div>
-      </main>
+      ))}
     </div>
+  );
+}
+
+export default function GemForgePage() {
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
+  const [prenom, setPrenom] = useState('');
+  const [selectedPoste, setSelectedPoste] = useState<Poste | null>(null);
+  const [tache, setTache] = useState('');
+  const [contexte, setContexte] = useState('');
+  const [tone, setTone] = useState('direct');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<GenerateResult | null>(null);
+
+  const generate = async () => {
+    if (!selectedPoste) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prenom: prenom.trim(),
+          poste_id: selectedPoste.id,
+          tache: tache.trim(),
+          contexte: contexte.trim(),
+          tone,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Génération échouée. Réessaie.');
+      }
+      const data = await response.json();
+      setResult(data);
+      setStep(3);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.name === 'AbortError' ? 'Génération trop longue, réessaie.' : err.message);
+      } else {
+        setError('Erreur inattendue. Réessaie.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGenerate = () => {
+    setStep(2);
+    generate();
+  };
+
+  const handleRestart = () => {
+    setStep(0);
+    setPrenom('');
+    setSelectedPoste(null);
+    setTache('');
+    setContexte('');
+    setTone('direct');
+    setResult(null);
+    setError(null);
+    setLoading(false);
+  };
+
+  const showLoading = step === 2 && (loading || error !== null);
+
+  return (
+    <main
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ background: 'var(--bg)' }}
+    >
+      <div className="w-full max-w-lg">
+        {!showLoading && step > 0 && step < 3 && <StepIndicator step={step} />}
+
+        {step === 0 && (
+          <StepAccueil prenom={prenom} setPrenom={setPrenom} onNext={() => setStep(1)} />
+        )}
+
+        {step === 1 && (
+          <StepPoste
+            prenom={prenom}
+            selected={selectedPoste}
+            onSelect={setSelectedPoste}
+            onNext={() => setStep(2)}
+            onBack={() => setStep(0)}
+          />
+        )}
+
+        {step === 2 && !showLoading && (
+          <StepQuotidien
+            poste={selectedPoste ?? POSTES[0]}
+            tache={tache}
+            setTache={setTache}
+            contexte={contexte}
+            setContexte={setContexte}
+            tone={tone}
+            setTone={setTone}
+            onGenerate={handleGenerate}
+            onBack={() => setStep(1)}
+          />
+        )}
+
+        {showLoading && (
+          <LoadingState
+            prenom={prenom}
+            error={error}
+            onRetry={error ? generate : undefined}
+          />
+        )}
+
+        {step === 3 && result && (
+          <StepResultat prenom={prenom} result={result} onRestart={handleRestart} />
+        )}
+      </div>
+    </main>
   );
 }
