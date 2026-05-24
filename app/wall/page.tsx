@@ -3,11 +3,12 @@ import { useEffect, useState } from 'react';
 import { supabase, type Generation } from '@/lib/supabase';
 
 // Carte individuelle d'un Gem
-function GemCard({ gen, index }: { gen: Generation; index: number }) {
-  const preview = gen.gem_instructions.split('\n')[0]?.slice(0, 120) ?? '';
+function GemCard({ gen, index, isNew }: { gen: Generation; index: number; isNew?: boolean }) {
   return (
     <div
-      className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 animate-fly-in"
+      className={`rounded-2xl border bg-[var(--card)] p-5 animate-fly-in transition-colors duration-700 ${
+        isNew ? 'border-[var(--accent-primary)] shadow-[0_0_20px_rgba(91,106,245,0.35)]' : 'border-[var(--border)]'
+      }`}
       style={{ animationDelay: `${Math.min(index * 80, 600)}ms` }}
     >
       <div className="flex items-start gap-3 mb-3">
@@ -22,9 +23,8 @@ function GemCard({ gen, index }: { gen: Generation; index: number }) {
           <p className="text-[var(--accent-gem)] text-xs mt-0.5 truncate">{gen.poste_label}</p>
         </div>
       </div>
-      <p className="text-[var(--muted)] text-xs leading-relaxed line-clamp-3"
-        style={{ fontFamily: 'var(--font-dm-mono)', fontStyle: 'italic' }}>
-        {preview}…
+      <p className="text-[var(--muted)] text-xs leading-relaxed line-clamp-3">
+        {gen.tache}
       </p>
     </div>
   );
@@ -84,7 +84,12 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
 }
 
 // Mur principal
-function Wall({ generations }: { generations: Generation[] }) {
+function Wall({ generations, total, setTotal, newIds }: {
+  generations: Generation[];
+  total: number | null;
+  setTotal: (n: number | null) => void;
+  newIds: Set<string>;
+}) {
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* En-tête */}
@@ -113,10 +118,21 @@ function Wall({ generations }: { generations: Generation[] }) {
               style={{ fontFamily: 'var(--font-syne)' }}
             >
               {generations.length}
+              {total !== null && <span className="text-[var(--muted)] font-normal text-base">/{total}</span>}
             </span>
             <span className="text-[var(--muted)] text-sm">
               {generations.length <= 1 ? 'Gem généré' : 'Gems générés'}
             </span>
+            <input
+              type="number"
+              min={1}
+              max={50}
+              value={total ?? ''}
+              onChange={(e) => setTotal(e.target.value ? Number(e.target.value) : null)}
+              placeholder="/ ?"
+              aria-label="Nombre de participants attendus"
+              className="w-14 bg-[var(--card)] border border-[var(--border)] text-[var(--muted)] text-xs text-center rounded-lg px-2 py-1 outline-none focus:border-[var(--accent-primary)] transition-colors"
+            />
           </div>
         </div>
       </header>
@@ -136,7 +152,7 @@ function Wall({ generations }: { generations: Generation[] }) {
           >
             {generations.map((gen, i) => (
               <div key={gen.id} className="break-inside-avoid mb-4">
-                <GemCard gen={gen} index={i} />
+                <GemCard gen={gen} index={i} isNew={newIds.has(gen.id)} />
               </div>
             ))}
           </div>
@@ -149,6 +165,8 @@ function Wall({ generations }: { generations: Generation[] }) {
 export default function WallPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [generations, setGenerations] = useState<Generation[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!unlocked) return;
@@ -171,6 +189,10 @@ export default function WallPage() {
         (payload) => {
           const newGen = payload.new as Generation;
           setGenerations((prev) => [newGen, ...prev]);
+          setNewIds((prev) => new Set([...prev, newGen.id]));
+          setTimeout(() => {
+            setNewIds((prev) => { const next = new Set(prev); next.delete(newGen.id); return next; });
+          }, 4000);
         }
       )
       .subscribe();
@@ -184,5 +206,5 @@ export default function WallPage() {
     return <PasswordGate onUnlock={() => setUnlocked(true)} />;
   }
 
-  return <Wall generations={generations} />;
+  return <Wall generations={generations} total={total} setTotal={setTotal} newIds={newIds} />;
 }

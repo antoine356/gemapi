@@ -22,7 +22,7 @@ export default function StepPoste({ prenom, selected, onSelect, onNext, onBack }
       </h2>
 
       {/* Grille des postes */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
         {POSTES.map((poste) => {
           const isSelected = selected?.id === poste.id;
           return (
@@ -49,6 +49,12 @@ export default function StepPoste({ prenom, selected, onSelect, onNext, onBack }
           );
         })}
       </div>
+
+      {selected && (
+        <p className="text-[var(--muted)] text-sm mb-6 px-1 leading-relaxed">
+          {selected.desc}
+        </p>
+      )}
 
       {/* Boutons navigation */}
       <div className="flex gap-3">
