@@ -48,7 +48,7 @@ function parseGemResult(text: string): GemResult | null {
 async function callClaude(userPrompt: string): Promise<string> {
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2000,
+    max_tokens: 2500,
     system: SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
   });

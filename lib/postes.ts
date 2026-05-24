@@ -108,7 +108,7 @@ export const TONES = [
 ];
 
 export const LOADER_MESSAGES = (prenom: string): string[] => [
-  `Analyse du poste ${prenom}...`,
+  `Analyse de ton profil, ${prenom}...`,
   'Modélisation du contexte BeAPI...',
   'Rédaction des instructions système...',
   'Calibrage du prompt métier...',

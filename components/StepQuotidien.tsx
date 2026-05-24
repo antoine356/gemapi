@@ -37,11 +37,12 @@ export default function StepQuotidien({
         <span className="text-[var(--muted)] text-sm">{poste.label}</span>
       </div>
       <h2
-        className="text-2xl md:text-3xl font-bold text-[var(--white)] leading-tight mb-8"
+        className="text-2xl md:text-3xl font-bold text-[var(--white)] leading-tight mb-2"
         style={{ fontFamily: 'var(--font-syne)' }}
       >
         C&apos;est quoi ta tâche<br />la plus chronophage ?
       </h2>
+      <p className="text-[var(--muted)] text-sm mb-6">Plus tu es précis, plus ton Gem sera utile.</p>
 
       {/* Textarea tâche */}
       <div className="mb-5">
