@@ -57,7 +57,7 @@ export default function StepQuotidien({
           id="tache"
           value={tache}
           onChange={(e) => setTache(e.target.value)}
-          placeholder="Ex : Rédiger les comptes-rendus de réunion client et envoyer les CR à l'équipe..."
+          placeholder={poste.placeholder_tache}
           rows={4}
           maxLength={500}
           aria-label="Ta tâche principale la plus chronophage"

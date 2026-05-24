@@ -163,7 +163,7 @@ async function exportPDF(data: {
 }
 
 export default function StepResultat({ prenom, result, onRestart }: Props) {
-  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(true);
   const [showEmail, setShowEmail] = useState(false);
   const [email, setEmail] = useState('');
   const [emailSending, setEmailSending] = useState(false);
@@ -234,12 +234,17 @@ export default function StepResultat({ prenom, result, onRestart }: Props) {
         className="rounded-2xl border border-[var(--accent-gem)]/30 bg-[var(--card)] overflow-hidden"
         style={{ animation: 'fadeUp 0.5s ease 0.1s both' }}
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--accent-gem)]/20">
-          <div className="flex items-center gap-2">
-            <span className="text-[var(--accent-gem)] text-lg">✦</span>
-            <span className="text-[var(--accent-gem)] text-xs font-bold tracking-widest uppercase">
-              Instructions système — Gem Gemini
-            </span>
+        <div className="flex items-start justify-between px-5 py-3.5 border-b border-[var(--accent-gem)]/20">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--accent-gem)] text-lg">✦</span>
+              <span className="text-[var(--accent-gem)] text-xs font-bold tracking-widest uppercase">
+                Instructions système — Gem Gemini
+              </span>
+            </div>
+            <p className="text-[var(--muted)] text-xs font-normal pl-7">
+              Colle ce texte dans le champ &quot;Instructions&quot; lors de la création de ton Gem — il le configure une fois pour toutes.
+            </p>
           </div>
           <CopyButton text={result.gem_instructions} />
         </div>
@@ -258,12 +263,17 @@ export default function StepResultat({ prenom, result, onRestart }: Props) {
         className="rounded-2xl border border-[var(--accent-prompt)]/30 bg-[var(--card)] overflow-hidden"
         style={{ animation: 'fadeUp 0.5s ease 0.2s both' }}
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--accent-prompt)]/20">
-          <div className="flex items-center gap-2">
-            <span className="text-[var(--accent-prompt)] text-base">◆</span>
-            <span className="text-[var(--accent-prompt)] text-xs font-bold tracking-widest uppercase">
-              Prompt métier à tester
-            </span>
+        <div className="flex items-start justify-between px-5 py-3.5 border-b border-[var(--accent-prompt)]/20">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[var(--accent-prompt)] text-base">◆</span>
+              <span className="text-[var(--accent-prompt)] text-xs font-bold tracking-widest uppercase">
+                Prompt métier à tester
+              </span>
+            </div>
+            <p className="text-[var(--muted)] text-xs font-normal pl-7">
+              Copie ce prompt dans ton Gem pour un premier test — remplace les [CROCHETS] par tes données réelles.
+            </p>
           </div>
           <CopyButton text={result.prompt_metier} />
         </div>
@@ -275,6 +285,18 @@ export default function StepResultat({ prenom, result, onRestart }: Props) {
             {result.prompt_metier}
           </p>
         </div>
+      </div>
+
+      {/* Note confidentialité */}
+      <div
+        className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 flex items-start gap-2.5"
+        style={{ animation: 'fadeUp 0.5s ease 0.25s both' }}
+      >
+        <span className="text-sm flex-shrink-0 mt-0.5">🔒</span>
+        <p className="text-[var(--muted)] text-xs leading-relaxed">
+          Ton Gem reste dans ton compte Google personnel — BeAPI n&apos;a pas accès à tes conversations.
+          Tu restes aux commandes.
+        </p>
       </div>
 
       {/* Guide d'utilisation (accordéon) */}
