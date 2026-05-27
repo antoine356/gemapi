@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Sauvegarde dans Supabase (non bloquant — on renvoie le résultat même en cas d'échec Supabase)
-  supabase.from('generations').insert({
+  const { error: dbError } = await supabase.from('generations').insert({
     prenom: prenom.trim(),
     poste_id: poste.id,
     poste_label: poste.label,
@@ -154,11 +154,12 @@ export async function POST(request: NextRequest) {
     prompt_metier: result.prompt_metier,
     tache: tache.trim(),
     tone: tone ?? '',
-  }).then(({ error: dbError }) => {
-    if (dbError) {
-      console.error('[Supabase] Erreur de sauvegarde :', dbError.message);
-    }
   });
+  if (dbError) {
+    console.error('[Supabase] Erreur INSERT :', dbError.message, dbError.code);
+  } else {
+    console.log('[Supabase] INSERT OK :', prenom.trim(), poste.label);
+  }
 
   return NextResponse.json({
     gem_instructions: result.gem_instructions,
