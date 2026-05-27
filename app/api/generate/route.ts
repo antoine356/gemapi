@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     gem_instructions: result.gem_instructions,
     prompt_metier: result.prompt_metier,
     tache: tache.trim(),
-    tone,
+    tone: tone ?? '',
   }).then(({ error: dbError }) => {
     if (dbError) {
       console.error('[Supabase] Erreur de sauvegarde :', dbError.message);
